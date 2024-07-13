@@ -1,0 +1,66 @@
+#include <Wire.h> // I2C 통신 Wire 라이브러리 
+
+// 유니온 선언: 부동 소수점 숫자를 4바이트로 나누어 저장할 수 있는 구조체
+union FloatUnion
+{
+  float value;  // 부동 소수점 숫자 (4바이트)
+  byte bytes[4]; // 4바이트 배열
+};
+
+void setup() 
+{
+  Serial.begin(115200); // 시리얼 통신 시작, 통신 속도 115200bps
+  Wire.begin(8); // I2C 슬레이브 모드 시작, 슬레이브 주소 8번
+  Wire.onReceive(receiveEvent); // 데이터 수신 이벤트 핸들러 등록, 데이터 수신 시 receiveEvent 함수 호출
+}
+
+void loop()
+{
+  delay(100); // 메인 루프 지연 100ms, 주기적으로 실행되도록 함
+}
+
+// I2C 데이터 수신 이벤트 핸들러 함수
+void receiveEvent(int howMany)
+{
+  // 수신된 데이터가 16바이트 이상인 경우에만 처리
+  if (Wire.available() >= 16)
+  { 
+    // 데이터를 저장할 FloatUnion 구조체 변수 선언
+    FloatUnion frontUnion, leftUnion, rightUnion, resistanceUnion;
+    
+    // 4바이트의 데이터를 읽어서 frontUnion의 bytes 배열에 저장
+    for (int i = 0; i < 4; i++)
+    {
+      frontUnion.bytes[i] = Wire.read(); // I2C 버퍼에서 바이트를 읽어와 frontUnion의 bytes 배열에 저장
+    }
+    // 4바이트의 데이터를 읽어서 leftUnion의 bytes 배열에 저장
+    for (int i = 0; i < 4; i++)
+    {
+      leftUnion.bytes[i] = Wire.read(); // I2C 버퍼에서 바이트를 읽어와 leftUnion의 bytes 배열에 저장
+    }
+    // 4바이트의 데이터를 읽어서 rightUnion의 bytes 배열에 저장
+    for (int i = 0; i < 4; i++)
+    {
+      rightUnion.bytes[i] = Wire.read(); // I2C 버퍼에서 바이트를 읽어와 rightUnion의 bytes 배열에 저장
+    }
+    // 4바이트의 데이터를 읽어서 resistanceUnion의 bytes 배열에 저장
+    for (int i = 0; i < 4; i++)
+    {
+      resistanceUnion.bytes[i] = Wire.read(); // I2C 버퍼에서 바이트를 읽어와 resistanceUnion의 bytes 배열에 저장
+    }
+
+    // 수신된 데이터를 시리얼 모니터로 출력
+    Serial.print("정면 초음파 센서: "); // "정면 avg: " 출력
+    Serial.print(frontUnion.value); // 정면 평균 값 출력
+    Serial.print(" cm, "); // " cm, " 출력
+    Serial.print("왼쪽 초음파 센서: "); // "왼쪽 avg: " 출력
+    Serial.print(leftUnion.value); // 왼쪽 평균 값 출력
+    Serial.print(" cm, "); // " cm, " 출력
+    Serial.print("오른쪽 초음파 센서: "); // "오른쪽 avg: " 출력
+    Serial.print(rightUnion.value); // 오른쪽 평균 값 출력
+    Serial.print(" cm, "); // " cm, " 출력
+    Serial.print("가변저항: "); // "가변저항 avg: " 출력
+    Serial.print(resistanceUnion.value); // 가변 저항 평균 값 출력
+    Serial.println(" "); // 줄바꿈
+  }
+}
